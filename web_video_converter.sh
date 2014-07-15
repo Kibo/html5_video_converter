@@ -3,13 +3,28 @@
 # Example: ./web_video_converter.sh VIDEO_FILE_NAME
 # Example: ./web_video_converter.sh DIR_TO_VIDEOS
 
-OUTPUT_DIR="VIDEOS/"
+OUTPUT_DIR="video_out/"
 BIT_RATE="345k"
+
+# If a directory does not exist, create it
+if [[ ! -d $OUTPUT_DIR ]]; then
+  mkdir -p $OUTPUT_DIR
+fi
 
 # There is not parameter or -h
 if [ "$#" = "0" ] || [ "$1" = "-h" ]; then
 	echo -e "\n\tIt converts input video file or files in directory to WebM/Vorbis, OGG/Vorbis, H.264/ACC formats.\n\tExample: ./web_video_converter.sh myVideo.avi\n\tExample: ./web_video_converter.sh dirWithVideos\n"
 	exit 0
+fi
+
+# Checking for ffmpeg
+echo -ne "Checking for ffmpeg…"
+if [ $(which ffmpeg) ] ; then
+  echo "ffmpeg is already installed."
+else
+  echo "Installing ffmpeg with brew, check it"
+  brew list
+  exit 0
 fi
 
 function convertFile {
@@ -25,7 +40,7 @@ function convertFile {
 	ffmpeg -i $1 -acodec libvorbis -vcodec libtheora -b $BIT_RATE ${OUTPUT_DIR}${filename}.ogg
 
 	# H.264/ACC
-	# -acodec libfaac
+	# -acodec libfaac | libvo_aacenc
 	# @see http://trac.ffmpeg.org/wiki/CompilationGuide
 	ffmpeg -i $1 -acodec libvo_aacenc -vcodec libx264 -b $BIT_RATE ${OUTPUT_DIR}${filename}.mp4
 }
